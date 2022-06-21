@@ -10,7 +10,8 @@
     "lint": "eslint \"src/**/*.js\" --fix",
     "format": "prettier \"src/**/*.js\" --write",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",

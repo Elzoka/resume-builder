@@ -2,6 +2,7 @@ import { Server } from "http";
 import Koa from "koa";
 import error_handler from "@/middlewares/error_handler";
 import controllers from "@/controllers";
+import "@/components";
 
 // App
 const app = new Koa();

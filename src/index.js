@@ -7,6 +7,10 @@ async function bootstrap() {
   const server = await init_server(port);
 
   logger.info(`running on http://${host}:${port}`);
+
+  server.on("close", (err) => {
+    logger.error("unknown error", err);
+  });
 }
 
 bootstrap().catch((error) => {

@@ -4,8 +4,14 @@ import config from "@/config";
 const { combine, timestamp, printf, ms, colorize } = winston.format;
 
 const custom_format = printf(
-  ({ level, message, label, timestamp, ms, service }) => {
-    return `${timestamp} [${service}] ${level}: ${message} (${ms})`;
+  ({ level, message, label, timestamp, ms, service, ...meta }) => {
+    const rest = meta[Symbol.for("splat")] || [];
+
+    const stringifiedRest = rest
+      .map((el) => (el instanceof Error ? el.stack : JSON.stringify(el)))
+      .join(" ");
+
+    return `${timestamp} [${service}] ${level}: ${message} ${stringifiedRest} (${ms})`;
   }
 );
 

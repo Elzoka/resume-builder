@@ -1,6 +1,7 @@
 import { Server } from "http";
 import Koa from "koa";
 import Router from "@koa/router";
+import error_handler from "@/middlewares/error_handler";
 
 // App
 const app = new Koa();
@@ -11,6 +12,7 @@ router.get("/healthcheck", (ctx) => {
   ctx.response.status = 200;
 });
 
+app.use(error_handler);
 app.use(router.routes());
 
 /**

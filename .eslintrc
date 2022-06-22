@@ -74,7 +74,8 @@
     "no-throw-literal": "off",
     "no-useless-return": "off",
     "import/default": "off",
-    "newline-per-chained-call": "off"
+    "newline-per-chained-call": "off",
+    "no-restricted-exports": "off"
   },
   "env": {
     "es2021": true,

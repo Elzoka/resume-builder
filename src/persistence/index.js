@@ -3,6 +3,7 @@ import logger from "@/logger";
 import mongodb from "@/persistence/database/mongodb";
 import redis_client from "@/persistence/cache/redis";
 import id_generator from "./utils/id_generator";
+import validators, { runFieldsValidators } from "./validators";
 
 /**
  * @callback IGetObject
@@ -182,7 +183,11 @@ export default function create_client(config, models) {
       logger.info(`persistence.create_object ${model_name}`);
       const model_config = get_model_config(model_name);
 
-      // TODO: run validators
+      const { valid, invalid_fields } = runFieldsValidators(model_config, body);
+
+      if (!valid) {
+        throw errors.validation_error(invalid_fields);
+      }
 
       const { persistence_level } = model_config.config;
       const { cache } = cachers;
@@ -217,7 +222,11 @@ export default function create_client(config, models) {
       logger.info(`persistence.update_object ${model_name}`);
       const model_config = get_model_config(model_name);
 
-      // TODO: run validators
+      const { valid, invalid_fields } = runFieldsValidators(model_config, body);
+
+      if (!valid) {
+        throw errors.validation_error(invalid_fields);
+      }
 
       const { persistence_level } = model_config.config;
       const { cache } = cachers;

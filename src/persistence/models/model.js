@@ -1,6 +1,7 @@
 /**
  * @typedef FieldConfig
  * @property {string} type
+ * @property {import('@/persistence/validators').IValidator[]} validators
  * @property {boolean} index
  *
  * @typedef ModelConfig
@@ -8,10 +9,9 @@
  */
 
 /**
- * @template [T]
  * @typedef IModel
  * @property {ModelConfig} config
- * @property {{[x in keyof T]: FieldConfig}} fields
+ * @property {{[x: string]: FieldConfig}} fields
  */
 
 // if relations and searching is implemented

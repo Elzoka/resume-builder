@@ -4,6 +4,8 @@
  *
  */
 
+import validators from "../validators";
+
 /**
  *
  * @type {IModel<Resume>}
@@ -17,7 +19,7 @@ const resume = {
   fields: {
     first_name: {
       type: "string",
-      // validators: [validators.minLength(20), validators.maxLength(50)]
+      validators: [validators.minLength(20), validators.maxLength(50)],
     },
   },
   // relations: {

@@ -2,6 +2,7 @@
   "src/**/*.js": [
     "npm run format",
     "npm run lint",
+    "git add .",
     "npm run test -- --passWithNoTests"
   ],
   "src/**/*.{json,md}": "npm run format"

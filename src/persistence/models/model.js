@@ -2,11 +2,15 @@
  * @typedef FieldConfig
  * @property {string} type
  * @property {boolean} index
+ *
+ * @typedef ModelConfig
+ * @property {("db"|"cache")[]} persistence_level
  */
 
 /**
  * @template [T]
  * @typedef IModel
+ * @property {ModelConfig} config
  * @property {{[x in keyof T]: FieldConfig}} fields
  */
 

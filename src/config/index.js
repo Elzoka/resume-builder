@@ -7,6 +7,8 @@ import dotenv from "dotenv";
  * @property {string} host Network interface to listen on
  * @property {number} port The port the project runs on locally
  * @property {string} service The running service
+ * @property {string} database The configured db
+ * @property {string} redis_url redis connection string
  */
 
 dotenv.config();

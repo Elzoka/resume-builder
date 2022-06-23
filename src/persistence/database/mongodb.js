@@ -15,7 +15,7 @@ export default function create_client(config, models_config) {
     },
 
     async create_object(
-      { model_name, ...body },
+      { model_name, id, ...body },
       // { expand, author } = {}
       options = {}
     ) {

@@ -10,6 +10,7 @@
  */
 const resume = {
   config: {
+    persistence_level: ["cache"],
     // timestamps: true,
     // persistence_level: ['cache', 'db']
   },

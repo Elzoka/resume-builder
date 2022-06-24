@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  nodejs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: builder-api
+    container_name: builder-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - API_REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    ports:
+      - $API_PORT:$API_PORT
+    volumes:
+      - node_modules:/usr/src/app/node_modules
+  redis:
+    image: redis/redis-stack
+    restart: always
+    ports:
+      - '6379:6379'
+      - '8001:8001'
+    volumes: 
+      - cache:/data
+
+volumes:
+  node_modules:
+  cache:

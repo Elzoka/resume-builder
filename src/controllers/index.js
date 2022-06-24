@@ -1,6 +1,7 @@
 import Router from "@koa/router";
 import spec from "@/docs";
 import { koaSwagger } from "koa2-swagger-ui";
+import model_router from "./model";
 
 const router = new Router();
 
@@ -30,5 +31,7 @@ router.get(
   "/docs",
   koaSwagger({ routePrefix: false, swaggerOptions: { spec } })
 );
+
+router.use("/api", model_router.routes());
 
 export default router;

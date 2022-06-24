@@ -13,7 +13,7 @@ import validators, { runFieldsValidators } from "./validators";
  *
  *
  * @callback ICreateObject
- * @param {{model_name: string, id: string, [x: string]: any}} body
+ * @param {{model_name: string, id?: string, [x: string]: any}} body
  * @param {object} options
  * @return {Promise<any>}
  *
@@ -32,6 +32,8 @@ import validators, { runFieldsValidators } from "./validators";
  * @property {ICreateObject} create_object
  * @property {IUpdateObject} update_object
  * @property {IDeleteObject} delete_object
+ * @property {() => void} close
+ * @property {() => void} truncate
  */
 
 /**
@@ -111,7 +113,7 @@ export default function create_client(config, models) {
   const db = database_driver(config, models);
 
   logger.info("initializing redis cache");
-  const cache = redis_client();
+  const cache = redis_client(config);
 
   logger.info("initialized local cache");
 
@@ -153,12 +155,17 @@ export default function create_client(config, models) {
       if (persistence_level.includes("cache")) {
         const { cache } = cachers;
 
-        cached_object = cache.hGet({ model_name, id });
+        cached_object = await cache.hGet({ model_name, id });
       }
 
       // return value either way if not existed on db
       if (!persistence_level.includes("db")) {
         logger.info(`return ${model_name} stored on cache level`);
+
+        if (!cached_object) {
+          throw errors.not_found();
+        }
+
         return cached_object;
       }
 
@@ -172,6 +179,10 @@ export default function create_client(config, models) {
       logger.info("cache miss");
       const fetched_object = await db.get_object({ model_name, id }, options);
 
+      if (!fetched_object) {
+        throw errors.not_found();
+      }
+
       return fetched_object;
     },
 
@@ -183,31 +194,38 @@ export default function create_client(config, models) {
       logger.info(`persistence.create_object ${model_name}`);
       const model_config = get_model_config(model_name);
 
+      logger.info("run validators");
       const { valid, invalid_fields } = runFieldsValidators(model_config, body);
 
       if (!valid) {
+        logger.info("validation error");
         throw errors.validation_error(invalid_fields);
       }
 
+      logger.info("valid request body");
       const { persistence_level } = model_config.config;
       const { cache } = cachers;
 
       const id = id_generator();
+
       if (
         persistence_level.length === 1 &&
         persistence_level.includes("cache")
       ) {
+        logger.info("set from cache layer only");
         return cache.hSet({ model_name, id, ...body });
       }
 
       // TODO: add Pub/Sub (db hooks)
 
+      logger.info(`persist object on the db with id ${id}`);
       const created_object = await db.create_object(
         { model_name, id, ...body },
         options
       );
 
       if (persistence_level.includes("cache")) {
+        logger.info("cache the newly created object");
         cache.hSet({ model_name, id, ...created_object });
       }
 
@@ -219,14 +237,25 @@ export default function create_client(config, models) {
       // { expand, author } = {}
       options = {}
     ) {
-      logger.info(`persistence.update_object ${model_name}`);
+      logger.info(`persistence.update_object ${model_name} with id: ${id}`);
       const model_config = get_model_config(model_name);
 
-      const { valid, invalid_fields } = runFieldsValidators(model_config, body);
+      logger.info("run validation");
+      const { valid, invalid_fields } = runFieldsValidators(
+        model_config,
+        body,
+        true
+      );
 
       if (!valid) {
+        logger.info("validation error");
         throw errors.validation_error(invalid_fields);
       }
+
+      logger.info("valid request body");
+
+      // will fetch object and throw if not found
+      await this.get_object({ model_name, id });
 
       const { persistence_level } = model_config.config;
       const { cache } = cachers;
@@ -234,17 +263,19 @@ export default function create_client(config, models) {
         persistence_level.length === 1 &&
         persistence_level.includes("cache")
       ) {
+        logger.info("update on cache level only");
         return cache.hSet({ model_name, id, ...body });
       }
 
       // TODO: add Pub/Sub (db hooks)
-
+      logger.info("persist the updates on db layer");
       const updated_object = await db.update_object(
         { model_name, id, ...body },
         options
       );
 
       if (persistence_level.includes("cache")) {
+        logger.info("persist the updates on cache layer");
         cache.hSet({ model_name, id, ...updated_object });
       }
 
@@ -252,27 +283,43 @@ export default function create_client(config, models) {
     },
 
     async delete_object({ model_name, id }, options = {}) {
-      logger.info(`persistence.delete_object ${model_name}`);
+      logger.info(`persistence.delete_object ${model_name} with id: ${id}`);
       const model_config = get_model_config(model_name);
+
+      logger.info("check that object exists");
+      // will fetch object and throw if not found
+      await this.get_object({ model_name, id });
 
       const { persistence_level } = model_config.config;
       const { cache } = cachers;
+
       if (
         persistence_level.length === 1 &&
         persistence_level.includes("cache")
       ) {
+        logger.info("delete from cache layer only");
         return cache.hDel({ model_name, id });
       }
 
+      logger.info("delete object from db layer");
       const deleted_object = await db.delete_object(
         { model_name, id },
         options
       );
       if (persistence_level.includes("cache")) {
+        logger.info("delete object from cache layer");
         cache.hDel({ model_name, id });
       }
 
       return deleted_object;
+    },
+    truncate() {
+      // db truncate
+      cache.flushAll();
+    },
+    close() {
+      // db close
+      cache.close();
     },
   };
   return persistence;

@@ -85,7 +85,7 @@ describe("redis", () => {
       expect(cached_val).toEqual(expect.objectContaining({ id, ...body }));
 
       const new_val = await cache.hGet(entity_key);
-      expect(new_val).toEqual({});
+      expect(new_val).toEqual(null);
     });
 
     test("should update object", async () => {

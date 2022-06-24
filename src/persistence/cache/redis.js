@@ -9,12 +9,12 @@ import cache_key_generator from "../utils/cache_key_generator";
  */
 export default function create_client(config) {
   logger.info("initialize cache connection");
+
   const client = createClient({
     url: config.redis_url,
   });
 
   client.connect();
-
   return {
     async get(key) {
       logger.info(`redis.get ${key}`);
@@ -42,9 +42,13 @@ export default function create_client(config) {
       logger.info(`redis.hmGet ${model_name} with id ${id}`);
       const entity_key = cache_key_generator(model_name, id);
 
-      const fetched_object = await client.hGetAll(entity_key);
+      const [fetched_object, exists] = await client
+        .multi()
+        .hGetAll(entity_key)
+        .exists(entity_key)
+        .exec();
 
-      return fetched_object;
+      return exists ? fetched_object : null;
     },
 
     async hSet({ model_name, id, ...body }) {
@@ -52,15 +56,16 @@ export default function create_client(config) {
       const entity_key = cache_key_generator(model_name, id);
 
       const ordered_key_value_pairs = Object.entries(body).reduce(
-        (acc, [key, val]) => acc.concat(key, val),
+        (acc, [key, val]) => acc.concat(key, String(val)),
         []
       );
 
       const fields = ["id", id, ...ordered_key_value_pairs];
+
       // create transaction to set entity and return result
       await client.sendCommand(["HMSET", entity_key, ...fields]);
 
-      const created_object = await client.hGetAll(entity_key);
+      const created_object = await this.hGet({ model_name, id });
 
       return created_object;
     },

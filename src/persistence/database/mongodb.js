@@ -35,8 +35,11 @@ export default function create_client(config, models_config) {
     async delete_object({ model_name, id }, options = {}) {
       logger.info(`db.delete_object ${model_name} with id ${id}`);
     },
+    truncate: () => {
+      logger.info("db.truncate");
+    },
     close: () => {
-      logger.info("close connection");
+      logger.info("db.close connection");
       // close connection
     },
   };

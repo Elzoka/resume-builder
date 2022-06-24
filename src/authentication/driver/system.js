@@ -18,7 +18,7 @@ export default function create_client(config) {
       // TODO: maybe add expiration date later and refresh token
 
       const token = jwt.sign(
-        { id: user_id, role: "guest", iss: "system" },
+        { id: user_id, role: "guest" },
         config.system_auth_token_secret
       );
 

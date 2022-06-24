@@ -12,6 +12,7 @@ import dotenv from "dotenv";
  * @property {string} test_redis_url redis connection string for testing
  * @property {string} auth_driver authentication driver
  * @property {string} system_auth_token_secret jwt token secret
+ * @property {string} docs_endpoint configure swagger ui endpoint
  */
 
 dotenv.config();

@@ -1,4 +1,5 @@
 import Router from "@koa/router";
+import config from "@/config";
 import spec from "@/docs";
 import { koaSwagger } from "koa2-swagger-ui";
 import model_router from "./model";
@@ -30,7 +31,7 @@ router.get("/healthcheck", (ctx) => {
  *         description: Returns UI for swagger docs.
  */
 router.get(
-  "/docs",
+  `${config.docs_endpoint}`,
   koaSwagger({ routePrefix: false, swaggerOptions: { spec } })
 );
 

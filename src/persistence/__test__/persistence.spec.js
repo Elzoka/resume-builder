@@ -30,7 +30,7 @@ describe("persistence (cache layer only)", () => {
       fields: {
         name: {
           type: "string",
-          validators: [validators.required(), validators.string()],
+          validators: [validators.required()],
         },
         age: {
           type: "number",
@@ -99,7 +99,7 @@ describe("persistence (cache layer only)", () => {
       expect(created_object).toEqual(
         expect.objectContaining({
           name: object_body.name,
-          age: object_body.age + "",
+          age: object_body.age,
         })
       );
 

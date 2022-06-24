@@ -3,7 +3,7 @@ import logger from "@/logger";
 import mongodb from "@/persistence/database/mongodb";
 import redis_client from "@/persistence/cache/redis";
 import id_generator from "./utils/id_generator";
-import validators, { runFieldsValidators } from "./validators";
+import validators, { runFieldsValidators } from "@/persistence/validators";
 import _ from "lodash";
 
 /**
@@ -52,15 +52,19 @@ import _ from "lodash";
  * @param {string} key
  * @return {Promise<number>}
  *
- * @callback IHGetKey
+ * @callback IJsonGetKey
  * @param {{model_name: string, id: string}} body
  * @return {Promise<any>}
  *
- * @callback IHSetKey
+ * @callback IJsonCreateKey
  * @param {{model_name: string, id: string, [x: string]: string}} body
  * @return {Promise<any>}
  *
- * @callback IHDelKey
+ * @callback IJsonUpdateKey
+ * @param {{model_name: string, id: string, [x: string]: string}} body
+ * @return {Promise<any>}
+ *
+ * @callback IJsonDelKey
  * @param {{model_name: string, id: string}} body
  * @return {Promise<any>}
  *
@@ -75,9 +79,10 @@ import _ from "lodash";
  * @property {IGetKey} get
  * @property {ISetKey} set
  * @property {IDelKey} del
- * @property {IHGetKey} hGet
- * @property {IHSetKey} hSet
- * @property {IHDelKey} hDel
+ * @property {IJsonGetKey} json_get
+ * @property {IJsonCreateKey} json_create
+ * @property {IJsonUpdateKey} json_update
+ * @property {IJsonDelKey} hDel
  * @property {IFlushAll} flushAll
  * @property {IClose} close
  */
@@ -156,7 +161,7 @@ export default function create_client(config, models) {
       if (persistence_level.includes("cache")) {
         const { cache } = cachers;
 
-        cached_object = await cache.hGet({ model_name, id }, options);
+        cached_object = await cache.json_get({ model_name, id }, options);
       }
 
       // return value either way if not existed on db
@@ -219,7 +224,10 @@ export default function create_client(config, models) {
         persistence_level.includes("cache")
       ) {
         logger.info("set from cache layer only");
-        return cache.hSet({ model_name, id, ...sanitized_body }, options);
+        return cache.json_create(
+          { model_name, id, ...sanitized_body },
+          options
+        );
       }
 
       // TODO: add Pub/Sub (db hooks)
@@ -232,7 +240,7 @@ export default function create_client(config, models) {
 
       if (persistence_level.includes("cache")) {
         logger.info("cache the newly created object");
-        cache.hSet({ model_name, id, ...created_object }, options);
+        cache.json_create({ model_name, id, ...created_object }, options);
       }
 
       return created_object;
@@ -272,7 +280,10 @@ export default function create_client(config, models) {
         persistence_level.includes("cache")
       ) {
         logger.info("update on cache level only");
-        return cache.hSet({ model_name, id, ...sanitized_body }, options);
+        return cache.json_update(
+          { model_name, id, ...sanitized_body },
+          options
+        );
       }
 
       // TODO: add Pub/Sub (db hooks)
@@ -284,7 +295,7 @@ export default function create_client(config, models) {
 
       if (persistence_level.includes("cache")) {
         logger.info("persist the updates on cache layer");
-        cache.hSet({ model_name, id, ...updated_object }, options);
+        cache.json_update({ model_name, id, ...updated_object }, options);
       }
 
       return updated_object;
@@ -306,7 +317,7 @@ export default function create_client(config, models) {
         persistence_level.includes("cache")
       ) {
         logger.info("delete from cache layer only");
-        return cache.hDel({ model_name, id }, options);
+        return cache.json_del({ model_name, id }, options);
       }
 
       logger.info("delete object from db layer");
@@ -316,7 +327,7 @@ export default function create_client(config, models) {
       );
       if (persistence_level.includes("cache")) {
         logger.info("delete object from cache layer");
-        cache.hDel({ model_name, id }, options);
+        cache.json_del({ model_name, id }, options);
       }
 
       return deleted_object;

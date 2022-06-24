@@ -1,19 +1,23 @@
 import { Server } from "http";
 import Koa from "koa";
-import Router from "@koa/router";
 import error_handler from "@/middlewares/error_handler";
+import koa_body_parser from "koa-bodyparser";
+import controllers from "@/controllers";
+import "@/components";
+import request_logger from "./middlewares/request_logger";
 
 // App
 const app = new Koa();
 
-// routes
-const router = new Router();
-router.get("/healthcheck", (ctx) => {
-  ctx.response.status = 200;
-});
-
+// error handler
 app.use(error_handler);
-app.use(router.routes());
+
+// middle_wares
+app.use(koa_body_parser());
+app.use(request_logger);
+
+// routes
+app.use(controllers.routes());
 
 /**
  *

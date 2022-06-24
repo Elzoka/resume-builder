@@ -9,6 +9,9 @@ import dotenv from "dotenv";
  * @property {string} service The running service
  * @property {string} database The configured db
  * @property {string} redis_url redis connection string
+ * @property {string} test_redis_url redis connection string for testing
+ * @property {string} auth_driver authentication driver
+ * @property {string} system_auth_token_secret jwt token secret
  */
 
 dotenv.config();

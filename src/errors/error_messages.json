@@ -2,5 +2,7 @@
   "unknown_error": "An internal problem has occurred please check again later",
   "not_found": "Entity with specified id does not exist",
   "invalid_resource": "This entity does not exist",
-  "validation_error": "validation error"
+  "validation_error": "validation error",
+  "token_required": "Token is required",
+  "invalid_token": "Invalid token"
 }

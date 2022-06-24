@@ -3,10 +3,12 @@ import config from "@/config";
 import logger from "@/logger";
 
 async function bootstrap() {
-  const { port, host } = config;
+  const { port, host, docs_endpoint } = config;
   const server = await init_server(port);
 
-  logger.info(`running on http://${host}:${port}`);
+  const url = `http://${host}:${port}`;
+  logger.info(`running on ${url}`);
+  logger.info(`check api docs on ${url}${docs_endpoint}`);
 
   server.on("close", (err) => {
     logger.error("unknown error", err);

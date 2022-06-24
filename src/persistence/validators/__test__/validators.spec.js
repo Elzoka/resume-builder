@@ -1,4 +1,4 @@
-import validators, { runFieldsValidators } from "..";
+import validators, { runFieldsValidators } from "@/persistence/validators";
 
 describe("validators", () => {
   describe("maxLength", () => {
@@ -30,26 +30,52 @@ describe("validators", () => {
 
   describe("number", () => {
     test("should fail", () => {
-      const is_valid = validators.number()("ab");
+      const is_valid = validators._types.number()("ab");
 
       expect(is_valid).toBe(false);
     });
 
     test("should pass", () => {
-      const is_valid = validators.number()(3);
+      const is_valid = validators._types.number()(3);
 
       expect(is_valid).toBe(true);
     });
   });
   describe("string", () => {
     test("should fail", () => {
-      const is_valid = validators.string()(3);
+      const is_valid = validators._types.string()(3);
 
       expect(is_valid).toBe(false);
     });
 
     test("should pass", () => {
-      const is_valid = validators.string()("abcd");
+      const is_valid = validators._types.string()("abcd");
+
+      expect(is_valid).toBe(true);
+    });
+  });
+  describe("date", () => {
+    test("should fail", () => {
+      const is_valid = validators._types.date()("abcd");
+
+      expect(is_valid).toBe(false);
+    });
+
+    test("should pass", () => {
+      const is_valid = validators._types.date()("22/7/2022");
+
+      expect(is_valid).toBe(true);
+    });
+  });
+  describe("email", () => {
+    test("should fail", () => {
+      const is_valid = validators.email()("test123");
+
+      expect(is_valid).toBe(false);
+    });
+
+    test("should pass", () => {
+      const is_valid = validators.email()("test@test.com");
 
       expect(is_valid).toBe(true);
     });
@@ -76,11 +102,11 @@ describe("validators", () => {
       fields: {
         name: {
           type: "string",
-          validators: [validators.string(), validators.maxLength(10)],
+          validators: [validators.maxLength(10)],
         },
         age: {
           type: "number",
-          validators: [validators.required(), validators.number()],
+          validators: [validators.required()],
         },
       },
     };

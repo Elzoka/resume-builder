@@ -1,4 +1,5 @@
 import logger from "@/logger";
+import _ from "lodash";
 import { createClient } from "redis";
 import cache_key_generator from "../utils/cache_key_generator";
 
@@ -38,46 +39,58 @@ export default function create_client(config) {
       return cached_val;
     },
 
-    async hGet({ model_name, id }, options = {}) {
+    async json_get({ model_name, id }, options = {}) {
       logger.info(`redis.hmGet ${model_name} with id ${id}`);
       const entity_key = cache_key_generator(model_name, id, options.user?.id);
 
-      const [fetched_object, exists] = await client
-        .multi()
-        .hGetAll(entity_key)
-        .exists(entity_key)
-        .exec();
+      const fetched_object = client.json.get(entity_key);
 
-      return exists ? fetched_object : null;
+      return fetched_object;
     },
 
-    async hSet({ model_name, id, ...body }, options = {}) {
+    async json_create({ model_name, id, ...body }, options = {}) {
       logger.info(`redis.hmSet ${model_name} with id ${id}`);
       const entity_key = cache_key_generator(model_name, id, options.user?.id);
 
-      const ordered_key_value_pairs = Object.entries(body).reduce(
-        (acc, [key, val]) => acc.concat(key, String(val)),
-        []
-      );
-
-      const fields = ["id", id, ...ordered_key_value_pairs];
-
-      // create transaction to set entity and return result
-      await client.sendCommand(["HMSET", entity_key, ...fields]);
-
-      const created_object = await this.hGet({ model_name, id }, options);
+      const [, created_object] = await client
+        .multi()
+        .json.set(entity_key, "$", {
+          id,
+          ...body,
+        })
+        .json.get(entity_key)
+        .exec();
 
       return created_object;
     },
-    async hDel({ model_name, id }, options = {}) {
+
+    async json_update({ model_name, id, ...body }, options = {}) {
+      logger.info(`redis.hmSet ${model_name} with id ${id}`);
+      const entity_key = cache_key_generator(model_name, id, options.user?.id);
+
+      const stored_val = await this.json_get({ model_name, id });
+
+      const [, updated_object] = await client
+        .multi()
+        .json.set(entity_key, "$", {
+          id,
+          ..._.merge(stored_val, body),
+        })
+        .json.get(entity_key)
+        .exec();
+
+      return updated_object;
+    },
+
+    async json_del({ model_name, id }, options = {}) {
       logger.info(`redis.hmSet ${model_name} with id ${id}`);
       const entity_key = cache_key_generator(model_name, id, options.user?.id);
 
       // create transaction to set entity and return result
       const [deleted_object] = await client
         .multi()
-        .hGetAll(entity_key)
-        .del(entity_key)
+        .json.get(entity_key, "$")
+        .json.del(entity_key)
         .exec();
 
       return deleted_object;

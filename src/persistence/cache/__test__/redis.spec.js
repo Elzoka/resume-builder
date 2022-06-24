@@ -64,16 +64,18 @@ describe("redis", () => {
         field4: "test4",
       };
 
-      await cache.hSet({ model_name: model_name, id, ...body });
+      await cache.json_create({
+        model_name: model_name,
+        id,
+        ...body,
+      });
 
       return { id, model_name, body };
     }
 
     test("should store object", async () => {
       const { model_name, id, body } = await store_key();
-
-      const cached_val = await cache.hGet({ model_name, id });
-
+      const cached_val = await cache.json_get({ model_name, id });
       expect(cached_val).toEqual(expect.objectContaining({ id, ...body }));
     });
 
@@ -81,10 +83,10 @@ describe("redis", () => {
       const { model_name, id, body } = await store_key();
       const entity_key = cache_key_generator(model_name, id);
 
-      const cached_val = await cache.hDel({ model_name, id });
+      const cached_val = await cache.json_del({ model_name, id });
       expect(cached_val).toEqual(expect.objectContaining({ id, ...body }));
 
-      const new_val = await cache.hGet(entity_key);
+      const new_val = await cache.json_get(entity_key);
       expect(new_val).toEqual(null);
     });
 
@@ -93,7 +95,7 @@ describe("redis", () => {
       const updated_val = "updated_test";
       const updated_key = "field2";
 
-      const cached_val = await cache.hSet({
+      const cached_val = await cache.json_update({
         model_name,
         id,
         [updated_key]: updated_val,

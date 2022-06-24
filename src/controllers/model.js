@@ -2,12 +2,60 @@ import Router from "@koa/router";
 import { persistance } from "@/components";
 
 const model_router = new Router({});
+
 /**
  * @swagger
  * definitions:
  *   Resume:
  *     properties:
  *       first_name:
+ *         type: string
+ *       last_name:
+ *         type: string
+ *       summary:
+ *         type: string
+ *       skills:
+ *         type: array
+ *         items:
+ *           type: string
+ *       email:
+ *         type: string
+ *       experiences:
+ *         type: array
+ *         items:
+ *           $ref: '#/definitions/Experience'
+ *       education:
+ *         type: array
+ *         items:
+ *           $ref: '#/definitions/Education'
+ *   Education:
+ *     properties:
+ *       school_name:
+ *         type: string
+ *       start_date:
+ *         type: string
+ *       end_date:
+ *         type: string
+ *       study:
+ *         type: string
+ *       location:
+ *         type: string
+ *       summary:
+ *         type: string
+ *
+ *   Experience:
+ *     properties:
+ *       company_name:
+ *         type: string
+ *       start_date:
+ *         type: string
+ *       end_date:
+ *         type: string
+ *       position:
+ *         type: string
+ *       location:
+ *         type: string
+ *       summary:
  *         type: string
  *
  *   APIError:

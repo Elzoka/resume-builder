@@ -38,9 +38,9 @@ export default function create_client(config) {
       return cached_val;
     },
 
-    async hGet({ model_name, id }) {
+    async hGet({ model_name, id }, options = {}) {
       logger.info(`redis.hmGet ${model_name} with id ${id}`);
-      const entity_key = cache_key_generator(model_name, id);
+      const entity_key = cache_key_generator(model_name, id, options.user?.id);
 
       const [fetched_object, exists] = await client
         .multi()
@@ -51,9 +51,9 @@ export default function create_client(config) {
       return exists ? fetched_object : null;
     },
 
-    async hSet({ model_name, id, ...body }) {
+    async hSet({ model_name, id, ...body }, options = {}) {
       logger.info(`redis.hmSet ${model_name} with id ${id}`);
-      const entity_key = cache_key_generator(model_name, id);
+      const entity_key = cache_key_generator(model_name, id, options.user?.id);
 
       const ordered_key_value_pairs = Object.entries(body).reduce(
         (acc, [key, val]) => acc.concat(key, String(val)),
@@ -65,13 +65,13 @@ export default function create_client(config) {
       // create transaction to set entity and return result
       await client.sendCommand(["HMSET", entity_key, ...fields]);
 
-      const created_object = await this.hGet({ model_name, id });
+      const created_object = await this.hGet({ model_name, id }, options);
 
       return created_object;
     },
-    async hDel({ model_name, id }) {
+    async hDel({ model_name, id }, options = {}) {
       logger.info(`redis.hmSet ${model_name} with id ${id}`);
-      const entity_key = cache_key_generator(model_name, id);
+      const entity_key = cache_key_generator(model_name, id, options.user?.id);
 
       // create transaction to set entity and return result
       const [deleted_object] = await client

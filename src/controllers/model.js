@@ -1,7 +1,7 @@
 import Router from "@koa/router";
 import { persistance } from "@/components";
 
-const model_router = new Router();
+const model_router = new Router({});
 /**
  * @swagger
  * definitions:
@@ -20,7 +20,12 @@ const model_router = new Router();
  *         type: string
  *       code:
  *         type: string
- *
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:            # arbitrary name for the security scheme
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  * responses:
  *    Resolve:
  *      description: returns the requested resource
@@ -37,6 +42,12 @@ const model_router = new Router();
  *            $ref: '#/definitions/APIError'
  *    NotFound:
  *      description: Entity with the specified id does not exist
+ *      content:
+ *        application/json:
+ *          schema:
+ *            $ref: '#/definitions/APIError'
+ *    UnAuthorized:
+ *      description: Unauthorized to access this resource
  *      content:
  *        application/json:
  *          schema:
@@ -74,6 +85,10 @@ const model_router = new Router();
  *       - Model
  *     description: Find specific resource by specifying the model_name and the id
  *     summary: find modal by id
+ *     security:
+ *       - bearerAuth: []
+ *     scheme: bearer
+ *     bearerFormat: JWT
  *     parameters:
  *      - $ref: '#/parameters/Model_Name'
  *      - $ref: '#/parameters/ID'
@@ -84,12 +99,17 @@ const model_router = new Router();
  *         $ref: '#/responses/InvalidResource'
  *       404:
  *         $ref: '#/responses/NotFound'
+ *       401:
+ *         $ref: '#/responses/UnAuthorized'
  *
  */
 model_router.get("/:model_name/:id", async (ctx) => {
   const { model_name, id } = ctx.params;
 
-  const fetched_object = await persistance.get_object({ model_name, id });
+  const fetched_object = await persistance.get_object(
+    { model_name, id },
+    { user: ctx.user }
+  );
 
   ctx.response.status = 200;
   ctx.type = "application/json";
@@ -104,6 +124,8 @@ model_router.get("/:model_name/:id", async (ctx) => {
  *       - Model
  *     description: create new resource by specifying the model_name and the id
  *     summary: Create new resource
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *      - $ref: '#/parameters/Model_Name'
  *     requestBody:
@@ -118,15 +140,22 @@ model_router.get("/:model_name/:id", async (ctx) => {
  *         $ref: '#/responses/Resolve'
  *       400:
  *         $ref: '#/responses/InvalidResource'
+ *       401:
+ *         $ref: '#/responses/UnAuthorized'
  */
 model_router.post("/:model_name", async (ctx) => {
   const { model_name } = ctx.params;
   const { body } = ctx.request;
 
-  const created_object = await persistance.create_object({
-    model_name,
-    ...body,
-  });
+  const created_object = await persistance.create_object(
+    {
+      model_name,
+      ...body,
+    },
+    {
+      user: ctx.user,
+    }
+  );
 
   ctx.response.status = 201;
   ctx.response.body = created_object;
@@ -140,6 +169,8 @@ model_router.post("/:model_name", async (ctx) => {
  *       - Model
  *     description: update resource of the specified id
  *     summary: Patch Update resource
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *      - $ref: '#/parameters/Model_Name'
  *      - $ref: '#/parameters/ID'
@@ -157,16 +188,23 @@ model_router.post("/:model_name", async (ctx) => {
  *         $ref: '#/responses/InvalidResource'
  *       404:
  *         $ref: '#/responses/NotFound'
+ *       401:
+ *         $ref: '#/responses/UnAuthorized'
  */
 model_router.patch("/:model_name/:id", async (ctx) => {
   const { model_name, id } = ctx.params;
   const { body } = ctx.request;
 
-  const updated_object = await persistance.update_object({
-    model_name,
-    id,
-    ...body,
-  });
+  const updated_object = await persistance.update_object(
+    {
+      model_name,
+      id,
+      ...body,
+    },
+    {
+      user: ctx.user,
+    }
+  );
 
   ctx.response.status = 200;
   ctx.response.body = updated_object;
@@ -180,6 +218,8 @@ model_router.patch("/:model_name/:id", async (ctx) => {
  *       - Model
  *     description: delete the resource of the specified id
  *     summary: Delete resource
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *      - $ref: '#/parameters/Model_Name'
  *      - $ref: '#/parameters/ID'
@@ -190,11 +230,18 @@ model_router.patch("/:model_name/:id", async (ctx) => {
  *         $ref: '#/responses/InvalidResource'
  *       404:
  *         $ref: '#/responses/NotFound'
+ *       401:
+ *         $ref: '#/responses/UnAuthorized'
  */
 model_router.delete("/:model_name/:id", async (ctx) => {
   const { model_name, id } = ctx.params;
 
-  const deleted_object = await persistance.delete_object({ model_name, id });
+  const deleted_object = await persistance.delete_object(
+    { model_name, id },
+    {
+      user: ctx.user,
+    }
+  );
 
   ctx.response.status = 200;
   ctx.response.body = deleted_object;

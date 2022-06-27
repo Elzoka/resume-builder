@@ -56,7 +56,7 @@ jobs:
             # Remove old container
             docker rm $(echo $IMAGE_NAME)
             # add redis stack
-            docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+            docker run -v /local-data/:/data -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
             # Run a new container from a new image
             docker run -d \
             --restart always \

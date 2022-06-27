@@ -4,5 +4,7 @@
   "invalid_resource": "This entity does not exist",
   "validation_error": "validation error",
   "token_required": "Token is required",
-  "invalid_token": "Invalid token"
+  "invalid_token": "Invalid token",
+  "invalid_template": "Invalid template",
+  "template_required": "Template must be provided in the body"
 }

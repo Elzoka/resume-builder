@@ -12,6 +12,10 @@ const model_router = new Router({});
  *         type: string
  *       last_name:
  *         type: string
+ *       phone:
+ *         type: string
+ *       title:
+ *         type: string
  *       summary:
  *         type: string
  *       skills:

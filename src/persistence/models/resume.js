@@ -3,6 +3,8 @@
  * @property {string} first_name
  * @property {string} last_name
  * @property {string} summary
+ * @property {string} phone
+ * @property {string} title
  * @property {string[]} skills
  * @property {string} email
  * @property {IExperience[]} experiences
@@ -44,6 +46,14 @@ const resume = {
       validators: [validators.required(), validators.maxLength(50)],
     },
     last_name: {
+      type: "string",
+      validators: [validators.maxLength(50)],
+    },
+    title: {
+      type: "string",
+      validators: [validators.maxLength(50)],
+    },
+    phone: {
       type: "string",
       validators: [validators.maxLength(50)],
     },

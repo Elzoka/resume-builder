@@ -15,8 +15,7 @@ services:
       - redis
     ports:
       - $API_PORT:$API_PORT
-    volumes:
-      - node_modules:/usr/src/app/node_modules
+    
   redis:
     image: redis/redis-stack
     restart: always
@@ -27,5 +26,4 @@ services:
       - cache:/data
 
 volumes:
-  node_modules:
   cache:

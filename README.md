@@ -2,6 +2,8 @@
 
 A simple RESTful API to manage a Resume with incremental updates using redis, The API is pretty much flexible so, you could add a database driver later on.
 
+> [**Documentation**](http://128.199.32.241:3000/docs)
+
 ## Installation
 
 ---
